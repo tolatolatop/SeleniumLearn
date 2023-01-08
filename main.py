@@ -11,6 +11,8 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
+from PIL import Image
+
 
 def init_chrome_driver(config):
     options = webdriver.ChromeOptions()
@@ -25,6 +27,11 @@ def init_chrome_driver(config):
     options.add_argument('--no-sandbox')  # 解决DevToolsActivePort文件不存在的报错
     options.add_argument('--disable-gpu')  # 谷歌文档提到需要加上这个属性来规避bug
     options.add_argument('--start-maximized')  # 最大化运行（全屏窗口）,不设置，取元素会报错
+    # 关闭ssl提示
+    options.add_argument('ignore-certificate-errors')
+    # 禁用浏览器正在被自动化程序控制的提示
+    # options.add_experimental_option("useAutomationExtension", False)
+    # options.add_experimental_option("excludeSwitches", ["enable-automation"])
 
     executable_path = r"venv/chromedriver.exe"
     driver = webdriver.Chrome(executable_path=executable_path, chrome_options=options)
@@ -36,14 +43,20 @@ def init_arg_parser():
     return ap
 
 
+def run(driver):
+    driver.get("http://www.python.org")
+    assert "Python" in driver.title
+    driver.save_screenshot("test.png")
+    driver.execute_script("alert('ok')")
+    time.sleep(3)
+
+
 def main():
     ap = init_arg_parser()
     namespace = ap.parse_args(sys.argv[1:])
 
     driver = init_chrome_driver(namespace)
-    driver.get("http://www.python.org")
-    assert "Python" in driver.title
-    time.sleep(3)
+    run(driver)
     driver.close()
 
 
